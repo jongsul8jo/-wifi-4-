@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensor Data</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
+    <script>
+        // 10초마다 페이지 새로고침
+        setInterval(function() {
+            window.location.reload();
+        }, 10000);
+    </script>
+</head>
+<body>
+    <h1>Sensor Data</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Sensor Value 0</th>
+                <th>Sensor Value 1</th>
+                <th>Sensor Value 2</th>
+                <th>Sensor Value 3</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in data %}
+            <tr>
+                <td>{{ entry.timestamp }}</td>
+                <td>{{ entry.value0 }}</td>
+                <td>{{ entry.value1 }}</td>
+                <td>{{ entry.value2 }}</td>
+                <td>{{ entry.value3 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
