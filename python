@@ -1,0 +1,67 @@
+from flask import Flask, request, render_template
+from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
+import os
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///sensor_data.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+
+class SensorData(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    timestamp = db.Column(db.String(20))
+    value0 = db.Column(db.Integer)
+    value1 = db.Column(db.Integer)
+    value2 = db.Column(db.Integer)
+    value3 = db.Column(db.Integer)
+
+# 기존 데이터베이스 파일 삭제
+if os.path.exists('sensor_data.db'):
+    os.remove('sensor_data.db')
+
+# 애플리케이션 컨텍스트에서 데이터베이스 테이블 생성
+with app.app_context():
+    db.create_all()
+
+@app.route('/update', methods=['GET'])
+def update():
+    try:
+        value0 = request.args.get('value0')
+        value1 = request.args.get('value1')
+        value2 = request.args.get('value2')
+        value3 = request.args.get('value3')
+        
+        if value0 is not None and value1 is not None and value2 is not None and value3 is not None:
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            new_data = SensorData(
+                timestamp=timestamp, 
+                value0=int(value0), 
+                value1=int(value1), 
+                value2=int(value2), 
+                value3=int(value3)
+            )
+            db.session.add(new_data)
+            db.session.commit()
+            print(f"데이터 수신됨: {value0}, {value1}, {value2}, {value3}")
+            return "Sensor data received", 200
+        else:
+            print("잘못된 데이터 수신됨")
+            return "Invalid data", 400
+    except Exception as e:
+        print(f"오류: {str(e)}")
+        return str(e), 500
+
+@app.route('/')
+def index():
+    try:
+        sensor_data = SensorData.query.order_by(SensorData.timestamp.desc()).all()
+        for entry in sensor_data:
+            print(f"데이터 항목: {entry.timestamp}, {entry.value0}, {entry.value1}, {entry.value2}, {entry.value3}")
+        return render_template('index.html', data=sensor_data)
+    except Exception as e:
+        print(f"오류: {str(e)}")
+        return str(e), 500
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8080, debug=True)
